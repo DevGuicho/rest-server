@@ -2,7 +2,7 @@ const express = require('express')
 const { body } = require('express-validator')
 const handleValidate = require('../middlewares/handleValidation')
 const UsersServices = require('../services/users')
-const Role = require('../models/Role')
+const isRoleValid = require('../helpers/db-validators')
 
 function userApi(app) {
   const usersService = new UsersServices()
@@ -20,12 +20,7 @@ function userApi(app) {
       .withMessage('Password es obligatorio')
       .isLength({ min: 6 })
       .withMessage('El password debe tener mas de 6 caracteres'),
-    body('rol').custom(async (rol = '') => {
-      const existRol = await Role.findOne({ rol })
-      if (!existRol) {
-        throw new Error(`El rol ${rol} no esta registrado en la BD`)
-      }
-    }),
+    body('rol').custom(isRoleValid),
     handleValidate,
     async (req, res) => {
       const { body: user } = req
