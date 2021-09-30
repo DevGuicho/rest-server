@@ -2,7 +2,7 @@ const express = require('express')
 const { body } = require('express-validator')
 const handleValidate = require('../middlewares/handleValidation')
 const UsersServices = require('../services/users')
-const isRoleValid = require('../helpers/db-validators')
+const { isRoleValid, existEmail } = require('../helpers/db-validators')
 
 function userApi(app) {
   const usersService = new UsersServices()
@@ -13,6 +13,7 @@ function userApi(app) {
   router.post(
     '/',
     body('email').isEmail().withMessage('No tiene un formato valido'),
+    body('email').custom(existEmail),
     body('name').not().isEmpty().withMessage('El nombre es obligatorio'),
     body('password')
       .not()
