@@ -28,7 +28,8 @@ const ProductSchema = new Schema({
   availability: {
     type: Boolean,
     default: true
-  }
+  },
+  img: String
 })
 
 ProductSchema.set('toJSON', {

@@ -9,5 +9,6 @@ module.exports = {
   dbPassword: process.env.DB_PASSWORD,
   dbHost: process.env.DB_HOST,
   apiKey: process.env.API_KEY,
-  googleClientId: process.env.GOOGLE_CLIENT_ID
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  cloudinaryUrl: process.env.CLOUDINARY_URL
 }
