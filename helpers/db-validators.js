@@ -1,3 +1,5 @@
+const Category = require('../models/Category')
+const Product = require('../models/Product')
 const Role = require('../models/Role')
 const User = require('../models/User')
 
@@ -22,4 +24,48 @@ const existUser = async (id = '') => {
   }
 }
 
-module.exports = { isRoleValid, existEmail, existUser }
+const existCategory = async (name = '') => {
+  const existCategory = await Category.findOne({ name: name.toUpperCase() })
+  if (existCategory) {
+    throw new Error(`La categoria ${name} ya existe`)
+  }
+}
+
+const existCategoryById = async (id = '') => {
+  const existCategory = await Category.findById(id)
+  if (!existCategory) {
+    throw new Error(`La categoria ${id} no existe`)
+  }
+}
+
+const existProduct = async (name = '') => {
+  const existProduct = await Product.findOne({ name })
+  if (existProduct) {
+    throw new Error(`El producto ${name} ya existe`)
+  }
+}
+
+const existProductById = async (id = '') => {
+  const existProduct = await Product.findById(id)
+  if (!existProduct) {
+    throw new Error(`El producto con id ${id} no existe`)
+  }
+}
+
+const existCollection = async (collection = '') => {
+  const allowedCollections = ['users', 'categories', 'products', 'roles']
+  if (!allowedCollections.includes(collection)) {
+    throw new Error(`Las colecciones permitidas son : $${allowedCollections}`)
+  }
+}
+
+module.exports = {
+  isRoleValid,
+  existEmail,
+  existUser,
+  existCategory,
+  existCategoryById,
+  existProduct,
+  existProductById,
+  existCollection
+}

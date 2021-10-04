@@ -1,8 +1,17 @@
 const express = require('express')
-const { body } = require('express-validator')
-const handleValidate = require('../middlewares/handleValidation')
+const { body, param } = require('express-validator')
+
 const UsersServices = require('../services/users')
-const { isRoleValid, existEmail } = require('../helpers/db-validators')
+const {
+  handleValidate,
+  jwtValidation,
+  validateRoles
+} = require('../middlewares')
+const {
+  isRoleValid,
+  existEmail,
+  existUser
+} = require('../helpers/db-validators')
 
 function userApi(app) {
   const usersService = new UsersServices()
@@ -10,6 +19,31 @@ function userApi(app) {
 
   app.use('/api/users', router)
 
+  router.get('/', async (req, res) => {
+    const { limit, offset } = req.query
+    const { users, total } = await usersService.getUsers({
+      limit: limit && Number(limit),
+      offset: offset && Number(offset)
+    })
+    res.json({
+      message: 'users listed',
+      data: { users, total }
+    })
+  })
+  router.get(
+    '/:id',
+    param('id').isMongoId().withMessage('No es un id valido'),
+    param('id').custom(existUser),
+    handleValidate,
+    async (req, res) => {
+      const { id } = req.params
+      const user = await usersService.get({ id })
+      res.json({
+        message: 'users listed',
+        data: user
+      })
+    }
+  )
   router.post(
     '/',
     body('email').isEmail().withMessage('No tiene un formato valido'),
@@ -30,6 +64,42 @@ function userApi(app) {
       res.json({
         message: 'User created',
         data: userCreated
+      })
+    }
+  )
+  router.put(
+    '/:id',
+    param('id').isMongoId().withMessage('No es un id valido'),
+    param('id').custom(existUser),
+    body('rol').custom(isRoleValid),
+    handleValidate,
+    async (req, res) => {
+      const { id } = req.params
+      const { body: user } = req
+
+      const updatedUser = await usersService.update({ id, user })
+
+      res.json({
+        message: 'User updated',
+        data: updatedUser
+      })
+    }
+  )
+  router.delete(
+    '/:id',
+    jwtValidation,
+    validateRoles('ADMIN_ROLE'),
+    param('id').isMongoId().withMessage('No es un id valido'),
+    param('id').custom(existUser),
+    handleValidate,
+    async (req, res) => {
+      const { id } = req.params
+
+      const userDeleted = await usersService.delete({ id })
+
+      res.json({
+        message: 'User deleted',
+        data: userDeleted
       })
     }
   )
