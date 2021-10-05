@@ -1,5 +1,4 @@
 const path = require('path')
-const fs = require('fs')
 const express = require('express')
 const cloudinary = require('cloudinary').v2
 const { cloudinaryUrl } = require('../config')
@@ -31,65 +30,6 @@ function uploadsApi(app) {
     }
   })
 
-  /*  router.put(
-    '/:collection/:id',
-    param('collection').custom(existCollection),
-    param('id').isMongoId().withMessage('Id no valido'),
-    handleValidate,
-    fileValidation,
-    async (req, res) => {
-      const { collection, id } = req.params
-
-      let model
-      switch (collection) {
-        case 'users':
-          model = await User.findById(id)
-          if (!model) {
-            return res.status(400).json({
-              msg: `No existe un usuario con el id ${id}`
-            })
-          }
-          break
-        case 'products':
-          model = await Product.findById(id)
-          if (!model) {
-            return res.status(400).json({
-              msg: `No existe un producto con el id ${id}`
-            })
-          }
-          break
-        default:
-          return res.status(500).json({
-            msg: 'Not implmented'
-          })
-      }
-
-      // Limpiar imagenes previas
-
-      if (model.img) {
-        const pathImg = path.join(
-          __dirname,
-          '../uploads',
-          collection,
-          model.img
-        )
-        if (fs.existsSync(pathImg)) {
-          fs.unlinkSync(pathImg)
-        }
-      }
-
-      const nameFile = await uploadValidator({
-        files: req.files,
-        dir: collection
-      })
-      model.img = nameFile
-      await model.save()
-      res.json({
-        message: 'Img updated successfully',
-        data: model
-      })
-    }
-  ) */
   router.put(
     '/:collection/:id',
     param('collection').custom(existCollection),
