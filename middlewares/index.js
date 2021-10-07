@@ -5,12 +5,16 @@ const dbValidator = require('./dbValidator')
 
 const validationHandler = require('./validationHandler')
 const fileValidation = require('./fileValidation')
+const errorHandler = require('./errorHandler')
+const notFoundHandler = require('./notFoundHandler')
 
 module.exports = {
   fileValidation,
-  ...jwtValidation,
   validateRoles,
   handleValidate,
   validationHandler,
-  ...dbValidator
+  notFoundHandler,
+  ...jwtValidation,
+  ...dbValidator,
+  ...errorHandler
 }
