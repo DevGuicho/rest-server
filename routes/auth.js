@@ -1,24 +1,24 @@
 const express = require('express')
-const { body } = require('express-validator')
-const googleVerify = require('../helpers/googleVerify')
 const jwt = require('jsonwebtoken')
+const boom = require('@hapi/boom')
 
-const handleValidate = require('../middlewares/handleValidation')
-const User = require('../models/User')
 const AuthServices = require('../services/auth')
+const UsersServices = require('../services/users')
 const { apiKey } = require('../config')
+const { loginSchema } = require('../utils/schemas/loginSchema')
+const { createUserSchema } = require('../utils/schemas/userSchema')
+const { existEmail, validationHandler } = require('../middlewares')
 
 function authApi(app) {
   const router = express.Router()
   const authServices = new AuthServices()
+  const usersServices = new UsersServices()
   app.use('/api/auth', router)
 
   router.post(
     '/login',
-    body('email').isEmail().withMessage('El correro es obligatorio'),
-    body('password').not().isEmpty().withMessage('Contraseña obligatoria'),
-    handleValidate,
-    async (req, res) => {
+    validationHandler(loginSchema),
+    async (req, res, next) => {
       const { email, password } = req.body
 
       try {
@@ -31,14 +31,31 @@ function authApi(app) {
           }
         })
       } catch (error) {
-        res.status(400).json({
-          error: error.message
-        })
+        next(boom.unauthorized(error))
       }
     }
   )
 
   router.post(
+    '/sign-up',
+    validationHandler(createUserSchema),
+    existEmail(),
+    async (req, res) => {
+      const user = req.body
+      console.log(apiKey)
+      const userCreated = await usersServices.create({ user })
+      const token = jwt.sign({ id: userCreated._id }, apiKey)
+
+      res.json({
+        message: 'User registered successfully',
+        data: {
+          user,
+          token
+        }
+      })
+    }
+  )
+  /*   router.post(
     '/google',
     body('idToken').not().isEmpty(),
     handleValidate,
@@ -80,6 +97,7 @@ function authApi(app) {
       }
     }
   )
+  */
 }
 
 module.exports = authApi
