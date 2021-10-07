@@ -23,6 +23,7 @@
     "express-fileupload": "^1.2.1",
     "express-validator": "^6.12.2",
     "google-auth-library": "^7.10.0",
+    "helmet": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.8",
     "passport": "^0.5.0",
