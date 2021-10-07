@@ -1,17 +1,22 @@
 const express = require('express')
-const { body, param } = require('express-validator')
+const passport = require('passport')
 
 const UsersServices = require('../services/users')
 const {
   handleValidate,
-  jwtValidation,
-  validateRoles
+  validateRoles,
+  validationHandler,
+  existEmail,
+  existUser,
+  roleValidation
 } = require('../middlewares')
 const {
-  isRoleValid,
-  existEmail,
-  existUser
-} = require('../helpers/db-validators')
+  createUserSchema,
+  userIdSchema,
+  updateUserSchema
+} = require('../utils/schemas/userSchema')
+
+require('../utils/strategies/jwt')
 
 function userApi(app) {
   const usersService = new UsersServices()
@@ -32,8 +37,8 @@ function userApi(app) {
   })
   router.get(
     '/:id',
-    param('id').isMongoId().withMessage('No es un id valido'),
-    param('id').custom(existUser),
+    validationHandler(userIdSchema, 'params', 'id'),
+    existUser('params'),
     handleValidate,
     async (req, res) => {
       const { id } = req.params
@@ -46,17 +51,8 @@ function userApi(app) {
   )
   router.post(
     '/',
-    body('email').isEmail().withMessage('No tiene un formato valido'),
-    body('email').custom(existEmail),
-    body('name').not().isEmpty().withMessage('El nombre es obligatorio'),
-    body('password')
-      .not()
-      .isEmpty()
-      .withMessage('Password es obligatorio')
-      .isLength({ min: 6 })
-      .withMessage('El password debe tener mas de 6 caracteres'),
-    body('rol').custom(isRoleValid),
-    handleValidate,
+    validationHandler(createUserSchema),
+    existEmail('body'),
     async (req, res) => {
       const { body: user } = req
       const userCreated = await usersService.create({ user })
@@ -69,10 +65,10 @@ function userApi(app) {
   )
   router.put(
     '/:id',
-    param('id').isMongoId().withMessage('No es un id valido'),
-    param('id').custom(existUser),
-    body('rol').custom(isRoleValid),
-    handleValidate,
+    validationHandler(userIdSchema, 'params', 'id'),
+    validationHandler(updateUserSchema),
+    existUser('params'),
+    roleValidation,
     async (req, res) => {
       const { id } = req.params
       const { body: user } = req
@@ -87,10 +83,10 @@ function userApi(app) {
   )
   router.delete(
     '/:id',
-    jwtValidation,
+    passport.authenticate('jwt', { session: false }),
     validateRoles('ADMIN_ROLE'),
-    param('id').isMongoId().withMessage('No es un id valido'),
-    param('id').custom(existUser),
+    validationHandler(userIdSchema, 'params', 'id'),
+    existUser('params'),
     handleValidate,
     async (req, res) => {
       const { id } = req.params

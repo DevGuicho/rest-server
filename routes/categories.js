@@ -1,12 +1,21 @@
 const express = require('express')
-const { body, param } = require('express-validator')
-const { existCategory, existCategoryById } = require('../helpers/db-validators')
+const passport = require('passport')
+
 const {
-  jwtValidation,
-  handleValidate,
-  validateRoles
+  validateRoles,
+  existCategoryById,
+  validationHandler,
+  existCategory
 } = require('../middlewares')
+
 const ServicesCategories = require('../services/categories')
+const {
+  createCategorySchema,
+  updateCategorySchema
+} = require('../utils/schemas/categorySchema')
+const mongoIdSchema = require('../utils/schemas/mongoIdSchema')
+
+require('../utils/strategies/jwt')
 
 function categoriesApi(app) {
   const router = express.Router()
@@ -30,9 +39,8 @@ function categoriesApi(app) {
   // Obtener una categoria por id - publico
   router.get(
     '/:id',
-    param('id').isMongoId().withMessage('No es un id valido'),
-    param('id').custom(existCategoryById),
-    handleValidate,
+    validationHandler(mongoIdSchema, 'params', 'id'),
+    existCategoryById('params', 'id'),
     async (req, res) => {
       const { id } = req.params
       const category = await servicesCategory.get({ id })
@@ -46,10 +54,9 @@ function categoriesApi(app) {
   // Crear categoria - privado - cualquier rol
   router.post(
     '/',
-    jwtValidation,
-    body('name').notEmpty().withMessage('El nombre es obligatorio'),
-    body('name').custom(existCategory),
-    handleValidate,
+    passport.authenticate('jwt', { session: false }),
+    validationHandler(createCategorySchema),
+    existCategory,
     async (req, res) => {
       const { name } = req.body
       const newCategory = await servicesCategory.create({
@@ -66,10 +73,10 @@ function categoriesApi(app) {
   // Actualizar categoria - privado - cualquier rol con token valiodo
   router.put(
     '/:id',
-    jwtValidation,
-    param('id').isMongoId('El id es invalido'),
-    param('id').custom(existCategoryById),
-    handleValidate,
+    passport.authenticate('jwt', { session: false }),
+    validationHandler(mongoIdSchema, 'params', 'id'),
+    validationHandler(updateCategorySchema),
+    existCategoryById,
     async (req, res) => {
       const { id } = req.params
       const category = req.body
@@ -84,11 +91,10 @@ function categoriesApi(app) {
   // Borrrar una categoria - Admin
   router.delete(
     '/:id',
-    jwtValidation,
+    passport.authenticate('jwt', { session: false }),
     validateRoles('ADMIN_ROLE'),
-    param('id').isMongoId().withMessage('No es un id valido'),
-    param('id').custom(existCategoryById),
-    handleValidate,
+    validationHandler(mongoIdSchema, 'params', 'id'),
+    existCategoryById('params', 'id'),
     async (req, res) => {
       const { id } = req.params
       const categoryDeleted = await servicesCategory.delete({ id })
