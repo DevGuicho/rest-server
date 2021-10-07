@@ -16,6 +16,7 @@ function validationHandler(schema, check = 'body', param) {
     if (error) {
       return next(boom.badRequest(error))
     }
+
     next()
   }
 }

@@ -8,8 +8,9 @@ function existEmail(check = 'body') {
   return async (req, res, next) => {
     const { email } = req[check]
     const user = await User.findOne({ email })
+
     if (user) {
-      next(boom.badRequest(`The email ${email} already exist`))
+      return next(boom.badRequest(`The email ${email} already exist`))
     }
 
     next()
@@ -21,7 +22,7 @@ function existUser(check = 'body') {
     const { id } = req[check]
     const user = await User.findById(id)
     if (!user) {
-      next(boom.badRequest(`The user with ${id} doesn't exist`))
+      return next(boom.badRequest(`The user with ${id} doesn't exist`))
     }
 
     next()
@@ -33,7 +34,7 @@ function existCategoryById(check = 'body', param) {
     const id = req[check][param]
     const category = await Category.findById(id)
     if (!category) {
-      next(boom.badRequest(`The category with id ${id} doesn't exist`))
+      return next(boom.badRequest(`The category with id ${id} doesn't exist`))
     }
 
     next()
@@ -77,6 +78,16 @@ async function roleValidation(req, res, next) {
   next()
 }
 
+const existCollection = async (req, res, next) => {
+  const { collection } = req.params
+  const allowedCollections = ['users', 'categories', 'products', 'roles']
+  if (!allowedCollections.includes(collection)) {
+    return next(
+      boom.badRequest(`Las colecciones permitidas son : $${allowedCollections}`)
+    )
+  }
+}
+
 module.exports = {
   existEmail,
   existUser,
@@ -84,5 +95,6 @@ module.exports = {
   existCategoryById,
   existCategory,
   existProductById,
-  existProduct
+  existProduct,
+  existCollection
 }
