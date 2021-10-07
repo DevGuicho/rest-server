@@ -2,13 +2,16 @@ const path = require('path')
 const express = require('express')
 const cloudinary = require('cloudinary').v2
 const { cloudinaryUrl } = require('../config')
-const { param } = require('express-validator')
-const { existCollection } = require('../helpers/db-validators')
+
 const uploadValidator = require('../helpers/upload-validator')
-const { handleValidate } = require('../middlewares')
-const fileValidation = require('../middlewares/fileValidation')
 const Product = require('../models/Product')
 const User = require('../models/User')
+const {
+  existCollection,
+  fileValidation,
+  validationHandler
+} = require('../middlewares/index')
+const mongoIdSchema = require('../utils/schemas/mongoIdSchema')
 
 cloudinary.config(cloudinaryUrl)
 
@@ -32,9 +35,8 @@ function uploadsApi(app) {
 
   router.put(
     '/:collection/:id',
-    param('collection').custom(existCollection),
-    param('id').isMongoId().withMessage('Id no valido'),
-    handleValidate,
+    existCollection,
+    validationHandler(mongoIdSchema, 'params', 'id'),
     fileValidation,
     async (req, res) => {
       const { collection, id } = req.params
@@ -84,9 +86,8 @@ function uploadsApi(app) {
   )
   router.get(
     '/:collection/:id',
-    param('collection').custom(existCollection),
-    param('id').isMongoId(),
-    handleValidate,
+    existCollection,
+    validationHandler(mongoIdSchema, 'params', 'id'),
     async (req, res) => {
       const { collection, id } = req.params
 

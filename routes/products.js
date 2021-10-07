@@ -16,6 +16,8 @@ const {
   updateProductSchema
 } = require('../utils/schemas/productSchema')
 
+require('../utils/strategies/jwt')
+
 function productApi(app) {
   const router = express.Router()
   const serviceProduct = new ServicesProducts()
