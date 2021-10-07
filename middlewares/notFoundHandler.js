@@ -1,8 +1,10 @@
+const boom = require('@hapi/boom')
+
 function notFoundHandler(req, res, next) {
-  res.status(404).json({
-    error: 'Page Not Found'
-  })
-  next()
+  const {
+    output: { statusCode, payload }
+  } = boom.notFound()
+  res.status(statusCode).json(payload)
 }
 
 module.exports = notFoundHandler
